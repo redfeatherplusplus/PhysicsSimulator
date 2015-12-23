@@ -33,6 +33,14 @@ class Rigidbody;
 
 using namespace std;
 
+struct RigidBodyState {
+    void saveCurrentState(Rigidbody* body);
+    double orientation[4];
+    double position[3];
+    double p_velocity[3];
+    double l_velocity[3];
+};
+
 class Scene
 {
 private:
@@ -43,9 +51,10 @@ private:
     void handleCollision(int id1, int id2, 
         double* location1, double* location2, double* normal);
 public:
-    SWIFT_Scene* swift_scene;   //SWIFT scene for collision detection
-    vector<Rigidbody> bodies;   //collection of bodies in the scene
-    double gravity;             //gravity for all objects in the scene
+    SWIFT_Scene* swift_scene;  //SWIFT scene for collision detection
+    vector<Rigidbody> bodies;  //collection of bodies in the scene
+    RigidBodyState* states;    //temporarily saved body states
+    double gravity;            //gravity for all objects in the scene
 
     Scene();
     void add_body(const char* object_filename,

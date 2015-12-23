@@ -338,3 +338,10 @@ void Mesh::print() {
     cout << materialColor[2] << ", ";
     cout << endl;
 }
+
+//////////////////////
+//  getter methods  //
+//////////////////////
+
+double* Mesh::getOrientation() { return orientation; }
+double* Mesh::getPosition() { return position; }

@@ -1,51 +1,8 @@
-﻿Build started 12/22/2015 8:11:54 PM.
+﻿Build started 12/23/2015 1:55:07 AM.
      1>Project "C:\Users\Cheng\Documents\Visual Studio 2013\Projects\PhysicsSimulator\PhysicsSimulator\PhysicsSimulator.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D CODE_ANALYSIS /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze /analyze:plugin"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\\bin\localespc.dll" /errorReport:prompt   /analyze:quiet Domain\Mesh.cpp Domain\RigidBody.cpp Domain\Scene.cpp PhysicsEngine\MassProperties.cpp PhysicsSimulator.cpp Utils\Functions.cpp
-         Functions.cpp
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(529): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(530): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(531): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(535): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(536): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(537): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(541): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(542): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(543): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(547): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(548): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(549): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(555): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(556): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(557): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(561): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(562): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(563): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(567): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(568): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(569): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(573): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(574): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(575): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(581): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(582): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(583): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(587): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(588): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(589): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(593): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(594): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(595): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(599): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(600): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\cheng\documents\visual studio 2013\projects\physicssimulator\physicssimulator\utils\functions.cpp(601): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-         PhysicsSimulator.cpp
-         MassProperties.cpp
-         Scene.cpp
-         RigidBody.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Domain\Mesh.cpp
          Mesh.cpp
-         Running Code Analysis for C/C++...
-         Generating Code...
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Cheng\Documents\Visual Studio 2013\Projects\PhysicsSimulator\Debug\PhysicsSimulator.exe" /INCREMENTAL /NOLOGO AntTweakBar.lib freeglut.lib swift.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Cheng\Documents\Visual Studio 2013\Projects\PhysicsSimulator\Debug\PhysicsSimulator.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Cheng\Documents\Visual Studio 2013\Projects\PhysicsSimulator\Debug\PhysicsSimulator.lib" /MACHINE:X86 Debug\Mesh.obj
          Debug\RigidBody.obj
@@ -58,4 +15,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:01:35.87
+Time Elapsed 00:00:02.11

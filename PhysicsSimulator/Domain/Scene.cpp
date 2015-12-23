@@ -10,6 +10,33 @@
 #include <Utils/Functions.h>
 
 const double THRESHHOLD = 0.1;
+double *old_orientation;
+double *old_position;
+double *old_p_velocity;
+double *old_l_velocity;
+
+////////////////////////////////////
+//  RigidBodyState struct methods //
+////////////////////////////////////
+
+//save state of the given rigid body
+void RigidBodyState::saveCurrentState(Rigidbody* body) {
+    //get pointers to each of the given body's attributes
+    old_orientation = body->getOrientation();
+    old_position = body->getPosition();
+    old_p_velocity = body->p_velocity;
+    old_l_velocity = body->l_velocity;
+
+    //save current state information
+    for (int i = 0; i < 4; i++) {
+        orientation[i] = old_orientation[i];
+    }
+    for (int i = 0; i < 3; i++) {
+        position[i] = old_position[i];
+        p_velocity[i] = old_p_velocity[i];
+        l_velocity[i] = old_l_velocity[i];
+    }
+}
 
 ///////////////////////
 //  private methods  //
@@ -426,14 +453,18 @@ void Scene::draw() {
     }
 }
 
-//activate all pairs for collision checking in the scene
+//activate all pairs for collision checking in the scene and create array of body states
 void Scene::activate() {
     swift_scene->Activate();
+
+    //create an array of RigidBodyStates to hold state information for the scene
+    states = new RigidBodyState[bodies.size()];
 }
 
-//delete SWIFT_Scene for the scene
+//delete SWIFT_Scene for the scene and delete array of body states
 void Scene::kill() {
     delete swift_scene;
+    delete states;
 }
 
 //print scene info

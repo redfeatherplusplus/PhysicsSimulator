@@ -64,6 +64,10 @@ public:
     void setColor(float* materialColor);
     void draw();
     void print();
+
+    //getter methods
+    double* getOrientation();
+    double* getPosition();
 };
 
 #endif
