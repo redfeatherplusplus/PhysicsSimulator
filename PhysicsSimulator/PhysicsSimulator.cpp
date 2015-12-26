@@ -47,14 +47,17 @@ float lineColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };       //color of object outlines
 bool wireframe = false;                               //render wireframes
 
 //variables defined globally so they aren't redefined each display call
-Scene scene;                //scene consisting of rigid bodies
-double initial_time;        //initial time of program starting
-double current_time;        //current time from system clock
-double previous_time;       //time of previous update
-double update_fps;          //updates per second
-bool intersection = false;  //indicates if there are any intersections
-int obj_id = 0;             //id of object to apply impulse too
-int scene_id = 1;           //id of scene to reset to
+Scene scene;                 //scene consisting of rigid bodies
+double initial_time;         //initial time of program starting
+double current_time;         //current time from system clock
+double previous_time;        //time of previous update
+double elapsed_time;         //time elapsed between physics updates
+double update_fps;           //updates per second
+double contact_restitution;  //restitution for contact handling, ranges from -1 to 0
+bool collision = true;       //indicates if there are any collisions
+bool contact = true;         //indicates if there are any contacts
+int obj_id = 0;              //id of object to apply impulse too
+int scene_id = 1;            //id of scene to reset to
 
 //impulse parameters
 double location[3] = { 0, 0, 0 };
@@ -113,12 +116,12 @@ public:
         //add an offset cube
         offset[2] = 1.2 * 2;
         this->copy_body(0, IDENTITY, offset, false, 
-            p_velocity, l_velocity);
+            p_velocity, l_velocity, restitution);
 
         //add another offset cube
         offset[2] = 4.8 * 2;
         this->copy_body(0, IDENTITY, offset, false,
-            p_velocity, l_velocity);
+            p_velocity, l_velocity, restitution);
 
         //add floor
         offset[2] = 0.0;
@@ -161,7 +164,7 @@ public:
     BallScene::BallScene() {
 
         //offset of cubes
-        double offset[4] = { 0, 2.05, 0, 0 };
+        double offset[4] = { 0, 4.05, 0, 0 };
         double p_velocity[3] = { 0 };
         double l_velocity[3] = { 0 };
         double density = 0.5;
@@ -173,20 +176,21 @@ public:
             density, p_velocity, l_velocity, restitution);
 
         //add an offset cube
+        offset[2] = 0;
+        restitution = 0.8;
+        this->copy_body(0, IDENTITY, offset, false,
+            p_velocity, l_velocity, restitution);
+
+        //add another offset cube
         offset[2] = 1.2 * 2;
         restitution = 0;
         this->copy_body(0, IDENTITY, offset, false,
-            p_velocity, l_velocity);
-
-        //add another offset cube
-        //offset[2] = 2.4 * 2;
-        //this->copy_body(0, IDENTITY, offset, false,
-        //    p_velocity, l_velocity);
+            p_velocity, l_velocity, restitution);
 
         //add another offset cube
         offset[2] = 4.8 * 2;
         this->copy_body(0, IDENTITY, offset, true,
-            p_velocity, l_velocity);
+            p_velocity, l_velocity, restitution);
 
         //add floor
         offset[2] = 0.0;
@@ -233,7 +237,7 @@ public:
                     offset[2] = j * 1.2;
                     if (switcher) {
                         this->copy_body(0, IDENTITY, offset, false,
-                            p_velocity, l_velocity);
+                            p_velocity, l_velocity, restitution);
                         switcher = false;
                     }
                     else {
@@ -290,7 +294,7 @@ public:
                     offset[2] = j * 1.2;
                     if (switcher) {
                         this->copy_body(0, IDENTITY, offset, false,
-                            p_velocity, l_velocity);
+                            p_velocity, l_velocity, restitution);
                         switcher = false;
                     }
                     else {
@@ -345,7 +349,7 @@ public:
         offset[2] = -15.0;
         p_velocity[2] = 10.0;
         this->copy_body(1, IDENTITY, offset, false,
-            p_velocity, l_velocity);
+            p_velocity, l_velocity, restitution);
 
         //activate the swift scene
         this->activate();
@@ -456,14 +460,13 @@ public:
 class StackingScene : public Scene {
 public:
     StackingScene::StackingScene() {
-        this->gravity = -1.0;
 
         //offset of cubes
         double offset[4] = { 0, 1.02, 0, 0 };
         double p_velocity[3] = { 0 };
         double l_velocity[3] = { 0 };
         double density = 1.0;
-        double restitution = 1.0;
+        double restitution = 0.0;
 
         //add cube at origin
         this->add_body(cube, IDENTITY, offset, false,
@@ -473,7 +476,7 @@ public:
         for (int i = 0; i < 5; i++) {
             offset[1] += 2.02;
             this->copy_body(0, IDENTITY, offset, false,
-                p_velocity, l_velocity);
+                p_velocity, l_velocity, restitution);
         }
 
         //add floor
@@ -488,7 +491,7 @@ public:
         l_velocity[1] = 0;
         l_velocity[2] = 0;
         float color[4] = { 0.5, 0.5, 0.5, 1.0 };
-        restitution = 1;
+        restitution = 0;
         this->add_body(floor_box, color, IDENTITY, offset, true,
             density, p_velocity, l_velocity, restitution);
 
@@ -640,17 +643,65 @@ void display() {
 
     //check if we should update in this draw call to maintain update fps
     if (current_time - previous_time >= 1.0 / update_fps) {
+        elapsed_time = current_time - previous_time;
+        contact_restitution = 0;
+
         //update derived mesh attributes in the scene
         scene.updateMeshTransformations();
 
-        //update velocities within the scene
-        scene.updateVelocities(current_time - previous_time);
+        //follow collision and contact response scheme described in:
+        //nonconvex rigid bodies with stacking by Guendelman et al.
+        //1: save current state information of each of the bodies
+        //2: temporarily move all bodies forward in time by elapsed_time
+        //3: handle collisions in this forward time step, updating velocities
+        //4: restore position and orientation back to before time step
+        //5: new velocites mean new collisions, thus repeat steps 2-4 for a 
+        //   few iterations in order to handle this
+        //6: apply external forces and torque to objects, updating velocities
+        //7: handle contact using steps 2-5, but with negative/zero restitution
+        //7: alternatively to step 7, use a contact graph with shock propagation
+        //8: update positions based on new velocities
 
-        //handle collisions in the scene
-        scene.handleCollisions();
+        //save current state of scene
+        scene.saveBodyStates();
 
-        //update scene to maintain update fps
-        scene.update(current_time - previous_time);
+        //while there is still a collision, loop collision step up to an
+        //arbitrary limit here we use five as suggested in the paper above
+        for (int i = 0; i < 5 && collision; i++) {
+            //temporarily update the scene to step forward in time
+            scene.update(elapsed_time);
+
+            //handle collisions in the forward step and update velocities
+            //note: handleCollision returns true iff there is a collision
+            collision = scene.handleCollisions();
+
+            //restore scene state to before forward step
+            scene.restoreState();
+        }
+
+        //update velocities within the scene with external forces
+        scene.updateVelocities(elapsed_time);
+
+        //handle contacts in a similiar manner to collisions
+        for (int i = 0; i < 10 && contact; i++) {
+
+            //temporarily update the scene to step forward in time
+            scene.update(elapsed_time);
+
+            //handle collisions in the forward step and update velocities
+            //note: handleCollision returns true iff there is a collision
+            contact = scene.handleContacts(contact_restitution);
+
+            //restore scene state to before forward step
+            scene.restoreState();
+        }
+
+        //update scene with new velocities
+        scene.update(elapsed_time);
+
+        //set collision and contact to be true for next physics update
+        collision = true;
+        contact = true;
 
         //indicate current time as time of the previous update
         previous_time = current_time;

@@ -339,9 +339,19 @@ void Mesh::print() {
     cout << endl;
 }
 
-//////////////////////
-//  getter methods  //
-//////////////////////
+/////////////////////////////////
+//  getter and setter methods  //
+/////////////////////////////////
 
 double* Mesh::getOrientation() { return orientation; }
 double* Mesh::getPosition() { return position; }
+void Mesh::setOrientation(double *orientation) {
+    for (int i = 0; i < 4; i++) {
+        this->orientation[i] = orientation[i];
+    }
+}
+void Mesh::setPosition(double *position) {
+    for (int i = 0; i < 3; i++) {
+        this->position[i] = position[i];
+    }
+}

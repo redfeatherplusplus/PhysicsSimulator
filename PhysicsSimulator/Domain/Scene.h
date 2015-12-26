@@ -34,7 +34,7 @@ class Rigidbody;
 using namespace std;
 
 struct RigidBodyState {
-    void saveCurrentState(Rigidbody* body);
+    void saveCurrentState(Rigidbody body);
     double orientation[4];
     double position[3];
     double p_velocity[3];
@@ -44,11 +44,13 @@ struct RigidBodyState {
 class Scene
 {
 private:
-    void computeImpulseMagnitude(int id,
+    void computeImpulseMagnitude(int id, double restitution,
         double* location, double* impulse);
-    void computeImpulseMagnitude(int id1, int id2,
+    void computeImpulseMagnitude(int id1, int id2, double restitution,
         double* location1, double* location2, double* normal);
     void handleCollision(int id1, int id2, 
+        double* location1, double* location2, double* normal);
+    void handleContact(int id1, int id2, double restitution,
         double* location1, double* location2, double* normal);
 public:
     SWIFT_Scene* swift_scene;  //SWIFT scene for collision detection
@@ -67,14 +69,19 @@ public:
         double restitution);
     void copy_body(int body_id,
         double *orientation, double *offset, bool fixed, 
-        double *p_velocity, double *l_velocity);
+        double *p_velocity, double *l_velocity, double restitution);
 
     //scene time integration methods
     void update(double elapsed_time);
     void updateMeshTransformations();
-    void updateVelocities(double elapsed_time);
-    void handleCollisions();
     void applyImpulse(double *location, double *impulse, int id);
+
+    //scene collision and contact handling methods
+    void updateVelocities(double elapsed_time);
+    void saveBodyStates();
+    void restoreState();
+    bool handleCollisions();
+    bool handleContacts(double restitution);
 
     //scene rendering and setup methods
     void draw();

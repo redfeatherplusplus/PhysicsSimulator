@@ -20,12 +20,12 @@ double *old_l_velocity;
 ////////////////////////////////////
 
 //save state of the given rigid body
-void RigidBodyState::saveCurrentState(Rigidbody* body) {
+void RigidBodyState::saveCurrentState(Rigidbody body) {
     //get pointers to each of the given body's attributes
-    old_orientation = body->getOrientation();
-    old_position = body->getPosition();
-    old_p_velocity = body->p_velocity;
-    old_l_velocity = body->l_velocity;
+    old_orientation = body.getOrientation();
+    old_position = body.getPosition();
+    old_p_velocity = body.p_velocity;
+    old_l_velocity = body.l_velocity;
 
     //save current state information
     for (int i = 0; i < 4; i++) {
@@ -43,7 +43,7 @@ void RigidBodyState::saveCurrentState(Rigidbody* body) {
 ///////////////////////
 
 //compute magnitude of an impulse against a static body
-void Scene::computeImpulseMagnitude(int id,
+void Scene::computeImpulseMagnitude(int id, double restitution,
     double* location, double* impulse) {
 
     double oriented_inv_tensor[9] = { 0 };
@@ -77,7 +77,7 @@ void Scene::computeImpulseMagnitude(int id,
     //relative_velocity[2] += tmp_vec[2];
 
     //compute numerator of magnitude based on lowest coefficent of restitution
-    magnitude = -(1.0 + bodies[id].getRestitution()) * dotProduct(relative_velocity, impulse);
+    magnitude = -(1.0 + restitution) * dotProduct(relative_velocity, impulse);
 
     //divide numerator of magnitude by denominator
     magnitude /= (1.0 / bodies[id].getMass()) + angular;
@@ -89,7 +89,7 @@ void Scene::computeImpulseMagnitude(int id,
 }
 
 //compute magnitude of an impulse
-void Scene::computeImpulseMagnitude(int id1, int id2,
+void Scene::computeImpulseMagnitude(int id1, int id2, double restitution,
     double* location1, double* location2, double* impulse) {
 
     double oriented_inv_tensor[9] = { 0 };
@@ -113,6 +113,7 @@ void Scene::computeImpulseMagnitude(int id1, int id2,
     multiplyVector3(oriented_inv_tensor, tmp_vec);
     crossProduct(tmp_vec, location1, tmp_vec);
     angular1 = dotProduct(impulse, tmp_vec);
+    angular1 = 0;
 
     //compute oriented inverse tensor for second body
     bodies[id2].updateTransformations();
@@ -125,6 +126,7 @@ void Scene::computeImpulseMagnitude(int id1, int id2,
     multiplyVector3(oriented_inv_tensor, tmp_vec);
     crossProduct(tmp_vec, location2, tmp_vec);
     angular2 = dotProduct(impulse, tmp_vec);
+    angular2 = 0;
 
     //compute contribution to magnitude from relative velocity
     for (int i = 0; i < 3; i++) {
@@ -140,25 +142,103 @@ void Scene::computeImpulseMagnitude(int id1, int id2,
     //v_relative[1] -= tmp_vec[1];
     //v_relative[2] -= tmp_vec[2];
     
-    //compute numerator of magnitude based on lowest coefficent of restitution
-    if (bodies[id1].getRestitution() <= bodies[id2].getRestitution()) {
-        magnitude = -(1.0 + bodies[id1].getRestitution()) * dotProduct(v_relative, impulse);
-    } 
-    else {
-        magnitude = -(1.0 + bodies[id2].getRestitution()) * dotProduct(v_relative, impulse);
-    }
+    //compute numerator of magnitude based coefficent of restitution
+    magnitude = -(1.0 + restitution) * dotProduct(v_relative, impulse);
 
     //divide numerator of magnitude by denominator
     magnitude /= (1.0 / bodies[id1].getMass()) + (1.0 / bodies[id2].getMass()) + angular1 + angular2;
 
     //update impulse by magnitude
-    impulse[0] *= -1;
-    impulse[1] *= -1;
-    impulse[2] *= -1;
+    impulse[0] *= magnitude;
+    impulse[1] *= magnitude;
+    impulse[2] *= magnitude;
 }
 
 //handle a single collision between two objects
-void Scene::handleCollision(int id1, int id2,
+void Scene::handleCollision(int id1, int id2, 
+    double* location1, double* location2, double* normal) {
+
+    //check if either of the colliding bodies are static
+    //note that both may not be static, since static to
+    //static collisions are not reported
+    if (bodies[id1].getFixed()) {
+        //apply impulse to other non-static body
+        double impulse[3] = { 0 }; 
+
+        //location of impact is given in terms of ocs, orient to wcs
+        multiplyVector3(bodies[id2].rotation, location2);
+
+        //copy normal direction into impulse
+        impulse[0] = normal[0];
+        impulse[1] = normal[1];
+        impulse[2] = normal[2];
+
+        //compute impulse magnitude
+        computeImpulseMagnitude(id2, bodies[id2].getRestitution(),
+            location2, impulse);
+
+        //apply impulse
+        bodies[id2].applyImpulse(location2, impulse);
+    }
+    else if (bodies[id2].getFixed()) {
+        //apply impulse to other non-static body
+        double impulse[3] = { 0 };  
+
+        //location of impact is given in terms of ocs, orient to wcs
+        multiplyVector3(bodies[id1].rotation, location1);
+
+        //copy normal direction into impulse
+        impulse[0] = -normal[0];
+        impulse[1] = -normal[1];
+        impulse[2] = -normal[2];
+
+        //compute impulse magnitude
+        computeImpulseMagnitude(id1, bodies[id1].getRestitution(),
+            location1, impulse);
+
+        //apply impulse   
+        bodies[id1].applyImpulse(location1, impulse);
+    }
+    else {
+        //apply impluses to both bodies
+        double impulse1[3] = { 0 };
+        double impulse2[3] = { 0 };
+        double restitution = 0;
+
+        //location of impacts are given in terms of ocs, orient to wcs
+        multiplyVector3(bodies[id1].rotation, location1);
+        multiplyVector3(bodies[id2].rotation, location2);
+
+        //copy normal directions into impulses
+        impulse1[0] = -normal[0];
+        impulse1[1] = -normal[1];
+        impulse1[2] = -normal[2];
+        impulse2[0] = normal[0];
+        impulse2[1] = normal[1];
+        impulse2[2] = normal[2];
+
+        //find and use minimum restitution
+        if (bodies[id1].getRestitution() <= bodies[id2].getRestitution()) {
+            restitution = bodies[id1].getRestitution();
+        }
+        else {
+            restitution = bodies[id2].getRestitution();
+        }
+
+        //compute impulse magnitudes
+        computeImpulseMagnitude(id1, id2, restitution, 
+            location1, location2, impulse1);
+        computeImpulseMagnitude(id2, id1, restitution,
+            location2, location1, impulse2);
+
+        //apply impulses
+        bodies[id1].applyImpulse(location1, impulse1);
+        bodies[id2].applyImpulse(location2, impulse2);
+    }
+}
+
+//handle a single contact between two objects
+void Scene::handleContact(int id1, int id2, double restitution, 
     double* location1, double* location2, double* normal) {
 
     //check if either of the colliding bodies are static
@@ -167,17 +247,9 @@ void Scene::handleCollision(int id1, int id2,
     if (bodies[id1].getFixed()) {
         //apply impulse to other non-static body
         double impulse[3] = { 0 };
-        double v_relative[3] = { 0 };
-        double tmp_vec[3] = { 0 };
 
-        //compute contribution to magnitude from relative velocity
-        for (int i = 0; i < 3; i++) {
-            v_relative[i] += bodies[id1].p_velocity[i];
-        }
-        crossProduct(bodies[id1].l_velocity, location1, tmp_vec);
-        v_relative[0] += tmp_vec[0];
-        v_relative[1] += tmp_vec[1];
-        v_relative[2] += tmp_vec[2];
+        //location of impact is given in terms of ocs, orient to wcs
+        multiplyVector3(bodies[id2].rotation, location2);
 
         //copy normal direction into impulse
         impulse[0] = normal[0];
@@ -185,41 +257,18 @@ void Scene::handleCollision(int id1, int id2,
         impulse[2] = normal[2];
 
         //compute impulse magnitude
-        computeImpulseMagnitude(id2, location2, impulse);
+        computeImpulseMagnitude(id2, restitution,
+            location2, impulse);
 
         //apply impulse
         bodies[id2].applyImpulse(location2, impulse);
     }
     else if (bodies[id2].getFixed()) {
         //apply impulse to other non-static body
-        double impulse[3] = { 0 };             //vector describing impulse applied
-        double rotation_transpose[9] = { 0 };  //transposed mesh rotation
-        double relative_velocity[3] = { 0 };   //relative velocity at point of impact
-        double l_relative[3] = { 0 };          //angular part of relative velocity
+        double impulse[3] = { 0 };
 
         //location of impact is given in terms of ocs, orient to wcs
-        //note that we must transpose rotation since it stored in a transposed manner
-        transpose(rotation_transpose, bodies[id1].rotation);
-        multiplyVector3(rotation_transpose, location1);
-
-        /*
-        //compute inverted angular velocity
-        double l_velocity_inv[3] = { 0 };
-        for (int i = 0; i < 3; i++) {
-            l_velocity_inv[i] = bodies[id1].l_velocity[i];
-        }
-
-        //compute contribution to magnitude from relative velocity
-        for (int i = 0; i < 3; i++) {
-            relative_velocity[i] += bodies[id1].p_velocity[i];
-        }
-        crossProduct(l_velocity_inv, location1, l_relative);
-        relative_velocity[0] += l_relative[0];
-        relative_velocity[1] += l_relative[1];
-        relative_velocity[2] += l_relative[2];
-
-        cout << location1[1] << ", " << dotProduct(relative_velocity, normal) << ", ";
-        */
+        multiplyVector3(bodies[id1].rotation, location1);
 
         //copy normal direction into impulse
         impulse[0] = -normal[0];
@@ -227,7 +276,8 @@ void Scene::handleCollision(int id1, int id2,
         impulse[2] = -normal[2];
 
         //compute impulse magnitude
-        computeImpulseMagnitude(id1, location1, impulse);
+        computeImpulseMagnitude(id1, restitution,
+            location1, impulse);
 
         //apply impulse   
         bodies[id1].applyImpulse(location1, impulse);
@@ -237,7 +287,11 @@ void Scene::handleCollision(int id1, int id2,
         double impulse1[3] = { 0 };
         double impulse2[3] = { 0 };
 
-        //copy normal directiosn into impulses
+        //location of impacts are given in terms of ocs, orient to wcs
+        multiplyVector3(bodies[id1].rotation, location1);
+        multiplyVector3(bodies[id2].rotation, location2);
+
+        //copy normal directions into impulses
         impulse1[0] = -normal[0];
         impulse1[1] = -normal[1];
         impulse1[2] = -normal[2];
@@ -246,9 +300,9 @@ void Scene::handleCollision(int id1, int id2,
         impulse2[2] = normal[2];
 
         //compute impulse magnitudes
-        computeImpulseMagnitude(id1, id2,
+        computeImpulseMagnitude(id1, id2, restitution,
             location1, location2, impulse1);
-        computeImpulseMagnitude(id2, id1,
+        computeImpulseMagnitude(id2, id1, restitution,
             location2, location1, impulse2);
 
         //apply impulses
@@ -352,7 +406,7 @@ void Scene::add_body(const char* object_filename, float* color,
 //copy body then add copy to the list of bodies 
 void Scene::copy_body(int body_id,
     double *orientation, double *offset, bool fixed, 
-    double *p_velocity, double *l_velocity) {
+    double *p_velocity, double *l_velocity, double restitution) {
     //create mesh to copy original mesh into
     Rigidbody copy_body;
 
@@ -363,6 +417,7 @@ void Scene::copy_body(int body_id,
     copy_body.translate(offset);
     copy_body.rotate(orientation);
     copy_body.setFixed(fixed);
+    copy_body.setRestituion(restitution);
 
     //set linear and angular velocity
     copy_body.setLinearVelocity(p_velocity);
@@ -405,6 +460,19 @@ void Scene::updateMeshTransformations() {
     }
 }
 
+//apply given impulse to the mesh with matching id
+void Scene::applyImpulse(double *location, double *impulse, int id) {
+    //update the mesh's derivied attributes before applying the impulse
+    bodies[id].updateTransformations();
+
+    //apply the given impulse
+    bodies[id].applyImpulse(location, impulse);
+}
+
+////////////////////////////////////////////////////
+//  scene collision and contact handling methods  //
+////////////////////////////////////////////////////
+
 //update velocity based on forces present in the scene
 void Scene::updateVelocities(double elapsed_time) {
     for (Rigidbody &body : bodies) {
@@ -412,15 +480,30 @@ void Scene::updateVelocities(double elapsed_time) {
     }
 }
 
-//print out a message if there is a collision in the scene
-void Scene::handleCollisions() {
+//save current scene state by saving body states
+void Scene::saveBodyStates() {
+    for (int i = 0; i < bodies.size(); i++) {
+        states[i].saveCurrentState(bodies[i]);
+    }
+}
+
+//restore orientation and position from before timestep
+void Scene::restoreState() {
+    for (int i = 0; i < bodies.size(); i++) {
+        bodies[i].setOrientation(states[i].orientation);
+        bodies[i].setPosition(states[i].position);
+    }
+}
+
+//handle collisions in the scene, returns true if collision found
+bool Scene::handleCollisions() {
     int num_pairs;
     int* ids;
     double *nearest_pts;
     double *normals;
 
     //check for collisions
-    if (swift_scene->Query_Contact_Determination(false, SWIFT_INFINITY, 
+    if (swift_scene->Query_Contact_Determination(false, SWIFT_INFINITY,
         num_pairs, &ids, NO_DISTANCES, &nearest_pts, &normals)) {
         //collision found, handle each collision pair
         for (int i = 0; i < num_pairs; i++) {
@@ -430,16 +513,42 @@ void Scene::handleCollisions() {
                 nearest_pts + (6 * i), nearest_pts + (6 * i + 3),
                 normals + (3 * i));
         }
+
+        //return true to indicate that a collision was found
+        return (true);
+    }
+    else {
+        //no collision found, return false to indicate no collisions
+        return(false);
     }
 }
 
-//apply given impulse to the mesh with matching id
-void Scene::applyImpulse(double *location, double *impulse, int id) {
-    //update the mesh's derivied attributes before applying the impulse
-    bodies[id].updateTransformations();
+//handle contacts in the scene, returns true if contact found
+bool Scene::handleContacts(double restitution) {
+    int num_pairs;
+    int* ids;
+    double *nearest_pts;
+    double *normals;
 
-    //apply the given impulse
-    bodies[id].applyImpulse(location, impulse);
+    //check for contacts
+    if (swift_scene->Query_Contact_Determination(false, SWIFT_INFINITY,
+        num_pairs, &ids, NO_DISTANCES, &nearest_pts, &normals)) {
+        //contact found, handle each contact pair
+        for (int i = 0; i < num_pairs; i++) {
+            //handle a single contact pair, note we use pointer 
+            //arithmetic to pass the correct normals/nearest points
+            handleContact(ids[2 * i], ids[2 * i + 1], restitution, 
+                nearest_pts + (6 * i), nearest_pts + (6 * i + 3),
+                normals + (3 * i));
+        }
+
+        //return true to indicate that a contact was found
+        return (true);
+    }
+    else {
+        //no contact found, return false to indicate no contacts
+        return(false);
+    }
 }
 
 /////////////////////////////////////////

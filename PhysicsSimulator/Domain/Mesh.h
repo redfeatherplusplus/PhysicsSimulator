@@ -65,9 +65,11 @@ public:
     void draw();
     void print();
 
-    //getter methods
+    //getter and setter methods
     double* getOrientation();
     double* getPosition();
+    void setOrientation(double *orientation);
+    void setPosition(double *position);
 };
 
 #endif
