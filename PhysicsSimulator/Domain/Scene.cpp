@@ -53,17 +53,17 @@ void Scene::computeImpulseMagnitude(int id, double restitution,
     double magnitude = 0;
 
     //orient inverse tensor
-    transpose(oriented_inv_tensor, bodies[id].rotation);
+    transpose(oriented_inv_tensor, bodies[id].inv_rotation);
     multiplyMatrix3(oriented_inv_tensor, bodies[id].getInvTensor());
-    multiplyMatrix3(oriented_inv_tensor, bodies[id].rotation);
+    multiplyMatrix3(oriented_inv_tensor, bodies[id].inv_rotation);
 
     //note that angular contribution to magnitude denominator from a 
     //body is: normal * [inv_tensor x (location x normal)] x location 
 
     //compute angular contribution to denominator from body
-    crossProduct(location, impulse, tmp_vec);
+    crossProduct(impulse, location, tmp_vec);
     multiplyVector3(oriented_inv_tensor, tmp_vec);
-    crossProduct(tmp_vec, location, tmp_vec);
+    crossProduct(location, tmp_vec, tmp_vec);
     angular = dotProduct(impulse, tmp_vec);
     angular = 0;
 
@@ -103,7 +103,6 @@ void Scene::computeImpulseMagnitude(int id1, int id2, double restitution,
     //body is: normal * [inv_tensor x (location x normal)] x location 
 
     //compute oriented inverse tensor for first body
-    bodies[id1].updateTransformations();
     transpose(oriented_inv_tensor, bodies[id1].rotation);
     multiplyMatrix3(oriented_inv_tensor, bodies[id1].getInvTensor());
     multiplyMatrix3(oriented_inv_tensor, bodies[id1].rotation);
@@ -113,10 +112,8 @@ void Scene::computeImpulseMagnitude(int id1, int id2, double restitution,
     multiplyVector3(oriented_inv_tensor, tmp_vec);
     crossProduct(tmp_vec, location1, tmp_vec);
     angular1 = dotProduct(impulse, tmp_vec);
-    angular1 = 0;
 
     //compute oriented inverse tensor for second body
-    bodies[id2].updateTransformations();
     transpose(oriented_inv_tensor, bodies[id2].rotation);
     multiplyMatrix3(oriented_inv_tensor, bodies[id2].getInvTensor());
     multiplyMatrix3(oriented_inv_tensor, bodies[id2].rotation);
@@ -126,7 +123,6 @@ void Scene::computeImpulseMagnitude(int id1, int id2, double restitution,
     multiplyVector3(oriented_inv_tensor, tmp_vec);
     crossProduct(tmp_vec, location2, tmp_vec);
     angular2 = dotProduct(impulse, tmp_vec);
-    angular2 = 0;
 
     //compute contribution to magnitude from relative velocity
     for (int i = 0; i < 3; i++) {
@@ -134,13 +130,13 @@ void Scene::computeImpulseMagnitude(int id1, int id2, double restitution,
         v_relative[i] -= bodies[id2].p_velocity[i];
     }
     crossProduct(bodies[id1].l_velocity, location1, tmp_vec);
-    //v_relative[0] += tmp_vec[0];
-    //v_relative[1] += tmp_vec[1];
-    //v_relative[2] += tmp_vec[2];
+    v_relative[0] += tmp_vec[0];
+    v_relative[1] += tmp_vec[1];
+    v_relative[2] += tmp_vec[2];
     crossProduct(bodies[id2].l_velocity, location2, tmp_vec);
-    //v_relative[0] -= tmp_vec[0];
-    //v_relative[1] -= tmp_vec[1];
-    //v_relative[2] -= tmp_vec[2];
+    v_relative[0] -= tmp_vec[0];
+    v_relative[1] -= tmp_vec[1];
+    v_relative[2] -= tmp_vec[2];
     
     //compute numerator of magnitude based coefficent of restitution
     magnitude = -(1.0 + restitution) * dotProduct(v_relative, impulse);
@@ -149,9 +145,9 @@ void Scene::computeImpulseMagnitude(int id1, int id2, double restitution,
     magnitude /= (1.0 / bodies[id1].getMass()) + (1.0 / bodies[id2].getMass()) + angular1 + angular2;
 
     //update impulse by magnitude
-    impulse[0] *= magnitude;
-    impulse[1] *= magnitude;
-    impulse[2] *= magnitude;
+    impulse[0] *= -1;
+    impulse[1] *= -1;
+    impulse[2] *= -1;
 }
 
 //handle a single collision between two objects
@@ -269,6 +265,11 @@ void Scene::handleContact(int id1, int id2, double restitution,
 
         //location of impact is given in terms of ocs, orient to wcs
         multiplyVector3(bodies[id1].rotation, location1);
+        //cout << "normal: " << endl;
+        //for (int i = 0; i < 3; i++) {
+        //    cout << normal[i] << ", ";
+        //}
+        //cout << endl;
 
         //copy normal direction into impulse
         impulse[0] = -normal[0];
@@ -365,9 +366,7 @@ void Scene::add_body(const char* object_filename,
     cout << "ID: " << body.id << endl;
 
     //set the initial transformations for object in SWIFT
-    body.updateTransformations();
-    swift_scene->Set_Object_Transformation(body.id, 
-        body.inv_rotation, body.translation);
+    body.updateTransformations(this);
 
     //let gravity be sum of all forces for the object, 
     //unless it's a fixed object
@@ -434,10 +433,8 @@ void Scene::copy_body(int body_id,
     cout << "ID: " << copy_body.id << endl;
 
     //set the initial transformations for object in SWIFT
-    copy_body.updateTransformations();
-    swift_scene->Set_Object_Transformation(copy_body.id,
-        copy_body.inv_rotation, copy_body.translation);
-    
+    copy_body.updateTransformations(this);
+
     //add the copied mesh to the list of bodies
     bodies.push_back(copy_body);
 }
@@ -449,21 +446,21 @@ void Scene::copy_body(int body_id,
 //update all objects in scene by update interval
 void Scene::update(double elapsed_time) {
     for (Rigidbody &body : bodies) {
-        body.update(elapsed_time, this);
+        body.update(elapsed_time);
     }
 }
 
-//update all derived mesh transformations in the scene
+//update all derived mesh transformations in the scene and swift scene
 void Scene::updateMeshTransformations() {
     for (Rigidbody &body : bodies) {
-        body.updateTransformations();
+        body.updateTransformations(this);
     }
 }
 
 //apply given impulse to the mesh with matching id
 void Scene::applyImpulse(double *location, double *impulse, int id) {
     //update the mesh's derivied attributes before applying the impulse
-    bodies[id].updateTransformations();
+    bodies[id].updateTransformations(this);
 
     //apply the given impulse
     bodies[id].applyImpulse(location, impulse);

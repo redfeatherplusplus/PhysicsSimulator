@@ -22,13 +22,12 @@
 #include <map>
 #include <set>
 #include <SWIFT.h>
+#include <algorithm>    // std::random_shuffle
 
 //include local dependancies
-#include <Domain/Mesh.h>
 #include <Domain/Rigidbody.h>
 
 //forward declared class references
-class Mesh;
 class Rigidbody;
 
 using namespace std;

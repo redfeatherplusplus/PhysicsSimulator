@@ -53,9 +53,9 @@ double current_time;         //current time from system clock
 double previous_time;        //time of previous update
 double elapsed_time;         //time elapsed between physics updates
 double update_fps;           //updates per second
-double contact_restitution;  //restitution for contact handling, ranges from -1 to 0
 bool collision = true;       //indicates if there are any collisions
 bool contact = true;         //indicates if there are any contacts
+int contact_restitution;     //restitution for contact handling, ranges from -1 to 0
 int obj_id = 0;              //id of object to apply impulse too
 int scene_id = 1;            //id of scene to reset to
 
@@ -172,6 +172,7 @@ public:
 
         //add cube at origin
         offset[2] = 1.2 * -2;
+        restitution = 1;
         this->add_body(UVsphere, IDENTITY, offset, false,
             density, p_velocity, l_velocity, restitution);
 
@@ -473,7 +474,7 @@ public:
             density, p_velocity, l_velocity, restitution);
 
         //add stack of cubes
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 1; i++) {
             offset[1] += 2.02;
             this->copy_body(0, IDENTITY, offset, false,
                 p_velocity, l_velocity, restitution);
@@ -644,10 +645,7 @@ void display() {
     //check if we should update in this draw call to maintain update fps
     if (current_time - previous_time >= 1.0 / update_fps) {
         elapsed_time = current_time - previous_time;
-        contact_restitution = 0;
-
-        //update derived mesh attributes in the scene
-        scene.updateMeshTransformations();
+        contact_restitution = -9;
 
         //follow collision and contact response scheme described in:
         //nonconvex rigid bodies with stacking by Guendelman et al.
@@ -668,8 +666,9 @@ void display() {
         //while there is still a collision, loop collision step up to an
         //arbitrary limit here we use five as suggested in the paper above
         for (int i = 0; i < 5 && collision; i++) {
-            //temporarily update the scene to step forward in time
+            //temporarily update the scene one step forward in time
             scene.update(elapsed_time);
+            scene.updateMeshTransformations();
 
             //handle collisions in the forward step and update velocities
             //note: handleCollision returns true iff there is a collision
@@ -677,6 +676,7 @@ void display() {
 
             //restore scene state to before forward step
             scene.restoreState();
+            scene.updateMeshTransformations();
         }
 
         //update velocities within the scene with external forces
@@ -684,20 +684,25 @@ void display() {
 
         //handle contacts in a similiar manner to collisions
         for (int i = 0; i < 10 && contact; i++) {
-
-            //temporarily update the scene to step forward in time
+            //temporarily update the scene one step forward in time
             scene.update(elapsed_time);
+            scene.updateMeshTransformations();
 
             //handle collisions in the forward step and update velocities
             //note: handleCollision returns true iff there is a collision
-            contact = scene.handleContacts(contact_restitution);
+            contact = scene.handleContacts(contact_restitution / 10.0);
 
             //restore scene state to before forward step
             scene.restoreState();
+            scene.updateMeshTransformations();
+
+            //increment contact restitution
+            contact_restitution += 1;
         }
 
         //update scene with new velocities
         scene.update(elapsed_time);
+        scene.updateMeshTransformations();
 
         //set collision and contact to be true for next physics update
         collision = true;

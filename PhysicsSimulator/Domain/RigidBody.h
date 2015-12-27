@@ -24,11 +24,6 @@
 
 //include local dependancies
 #include <Domain/Mesh.h>
-#include <Domain/Scene.h>
-
-//forward declared class references
-class Mesh;
-class Scene;
 
 using namespace std;
 
@@ -51,7 +46,7 @@ public:
     void computePhysicalProperties(ifstream &meshFile);
 
     //time integration methods;
-    void update(double elapsed_time, Scene *scene);
+    void update(double elapsed_time);
     void applyForces(double elapsed_time);
     void applyImpulse(double *location, double *impulse);
 

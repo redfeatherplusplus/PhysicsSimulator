@@ -110,10 +110,9 @@ void Rigidbody::applyForces(double elapsed_time) {
 }
 
 //update the given mesh
-void Rigidbody::update(double elapsed_time, Scene *scene) {
+void Rigidbody::update(double elapsed_time) {
     if (!fixed) {
         //update position based on linear velocity
-
         for (int i = 0; i < 3; i++) {
             position[i] += p_velocity[i] * elapsed_time;
         }
@@ -122,25 +121,19 @@ void Rigidbody::update(double elapsed_time, Scene *scene) {
         //note: need to figure out why -l_velocity produces correct results
         //possibly due to left hand rule
         double rotation_quat[4] = { 0 };
-        rotation_quat[1] = 0.5 * l_velocity[0] * elapsed_time;
-        rotation_quat[2] = 0.5 * l_velocity[1] * elapsed_time;
-        rotation_quat[3] = 0.5 * l_velocity[2] * elapsed_time;
-        multiplyQuaternion(orientation, rotation_quat);
+        rotation_quat[1] = l_velocity[0] * elapsed_time;
+        rotation_quat[2] = l_velocity[1] * elapsed_time;
+        rotation_quat[3] = l_velocity[2] * elapsed_time;
+        multiplyQuaternion(rotation_quat, orientation);
 
         //add change due to angular velocity to orientation
-        //orientation[0] += 0.5 * rotation_quat[0];
-        //orientation[1] += 0.5 * rotation_quat[1];
-        //orientation[2] += 0.5 * rotation_quat[2];
-        //orientation[3] += 0.5 * rotation_quat[3];
+        orientation[0] += 0.5 * rotation_quat[0];
+        orientation[1] += 0.5 * rotation_quat[1];
+        orientation[2] += 0.5 * rotation_quat[2];
+        orientation[3] += 0.5 * rotation_quat[3];
 
         //normalize orientation
         normallizeQuaternion(orientation);
-
-        //update swift scene
-        updateTransformations();
-        scene->swift_scene->Set_Object_Transformation(id,
-            inv_rotation,
-            translation);
     }
 }
 
@@ -161,13 +154,13 @@ void Rigidbody::applyImpulse(double *location, double *impulse) {
     multiplyMatrix3(oriented_inv_tensor, inv_rotation);
 
     //compute change in angular velocity
-    crossProduct(location, impulse, delta_l);
+    crossProduct(impulse, location, delta_l);
     multiplyVector3(oriented_inv_tensor, delta_l);
 
     //update angular velocity
-    l_velocity[0] += delta_l[0];
-    l_velocity[1] += delta_l[1];
-    l_velocity[2] += delta_l[2];
+    //l_velocity[0] += delta_l[0];
+    //l_velocity[1] += delta_l[1];
+    //l_velocity[2] += delta_l[2];
 }
 
 /////////////////////////////////

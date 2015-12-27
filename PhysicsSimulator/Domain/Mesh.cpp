@@ -9,6 +9,9 @@
 #include <Domain/Mesh.h>
 #include <Utils/Functions.h>
 
+//include local dependancies
+#include <Domain/Scene.h>
+
 //global variables
 int v1;       //first vertex of triangle
 int v2;       //second vertex of triangle
@@ -237,32 +240,37 @@ void Mesh::translate(double *vector) {
     position[2] += vector[2];
 }
 
-//compute rotation matrix from orientation quaternion
-void Mesh::updateTransformations() {
+//update derived position and orientation, along with SWIFT scene
+void Mesh::updateTransformations(Scene *scene) {
     //note that while this method is similiar to computeLocalMatrix we have 
     //chosen against extracting a method since the methods operate on different 
     //attributes, in particular, attributes with different array indexing and size
 
     //compute pre-transposed 3x3 rotation matrix
-    inv_rotation[0] = 1 - 2 * orientation[2] * orientation[2] - 2 * orientation[3] * orientation[3];
-    inv_rotation[3] = 2 * orientation[1] * orientation[2] - 2 * orientation[0] * orientation[3];
-    inv_rotation[6] = 2 * orientation[1] * orientation[3] + 2 * orientation[0] * orientation[2];
+    rotation[0] = 1 - 2 * orientation[2] * orientation[2] - 2 * orientation[3] * orientation[3];
+    rotation[1] = 2 * orientation[1] * orientation[2] - 2 * orientation[0] * orientation[3];
+    rotation[2] = 2 * orientation[1] * orientation[3] + 2 * orientation[0] * orientation[2];
 
-    inv_rotation[1] = 2 * orientation[1] * orientation[2] + 2 * orientation[0] * orientation[3];
-    inv_rotation[4] = 1 - 2 * orientation[1] * orientation[1] - 2 * orientation[3] * orientation[3];
-    inv_rotation[7] = 2 * orientation[2] * orientation[3] - 2 * orientation[0] * orientation[1];
+    rotation[3] = 2 * orientation[1] * orientation[2] + 2 * orientation[0] * orientation[3];
+    rotation[4] = 1 - 2 * orientation[1] * orientation[1] - 2 * orientation[3] * orientation[3];
+    rotation[5] = 2 * orientation[2] * orientation[3] - 2 * orientation[0] * orientation[1];
 
-    inv_rotation[2] = 2 * orientation[1] * orientation[3] - 2 * orientation[0] * orientation[2];
-    inv_rotation[5] = 2 * orientation[2] * orientation[3] + 2 * orientation[0] * orientation[1];
-    inv_rotation[8] = 1 - 2 * orientation[1] * orientation[1] - 2 * orientation[2] * orientation[2];
+    rotation[6] = 2 * orientation[1] * orientation[3] - 2 * orientation[0] * orientation[2];
+    rotation[7] = 2 * orientation[2] * orientation[3] + 2 * orientation[0] * orientation[1];
+    rotation[8] = 1 - 2 * orientation[1] * orientation[1] - 2 * orientation[2] * orientation[2];
 
     //transpose inv_rotation into rotation
-    transpose(rotation, inv_rotation);
+    transpose(inv_rotation, rotation);
 
     //update translation values
     translation[0] = position[0];
     translation[1] = position[1];
     translation[2] = position[2];
+
+    //update swift scene
+    scene->swift_scene->Set_Object_Transformation(id,
+        inv_rotation,
+        translation);
 }
 
 /////////////////////////

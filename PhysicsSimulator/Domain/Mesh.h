@@ -22,6 +22,9 @@
 #include <map>
 #include <set>
 
+//forward declared class references
+class Scene;
+
 using namespace std;
 
 class Mesh
@@ -58,7 +61,7 @@ public:
     void getMesh(ifstream &meshFile);
     void rotate(double *quaternion);
     void translate(double *vector);
-    void updateTransformations();
+    void updateTransformations(Scene *scene);
 
     //rendering methods
     void setColor(float* materialColor);

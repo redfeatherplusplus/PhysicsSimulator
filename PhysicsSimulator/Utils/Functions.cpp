@@ -23,17 +23,19 @@ double floorMod(double dividend, double divisor) {
 
 //multiply vector by matrix and store result in the input vector
 void multiplyVector3(double *matrix, double *vector) {
-    double tmp[3] = { 0 };
+    float product[3] = { 0 };
 
-    //calculate result of multiplication
-    tmp[0] = matrix[0] * vector[0] + matrix[1] * vector[1] + matrix[2] * vector[2];
-    tmp[1] = matrix[3] * vector[0] + matrix[4] * vector[1] + matrix[5] * vector[2];
-    tmp[2] = matrix[6] * vector[0] + matrix[7] * vector[1] + matrix[8] * vector[2];
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            //multiply the row by col for each element in vector 
+            product[i] += vector[j] * matrix[3 * j + i];
+        }
+    }
 
-    //store result in input vector
-    vector[0] = tmp[0];
-    vector[1] = tmp[1];
-    vector[2] = tmp[2];
+    //copy product vector over
+    for (int i = 0; i < 3; i++) {
+        vector[i] = product[i];
+    }
 }
 
 //multiply two matrices and store the result in the first matrix
