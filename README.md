@@ -23,9 +23,9 @@ As the engine is only aware that it is operating on a scene, it does not care wh
 ## TODO
 
 The program cannot progress further without replacing the SWIFT Collision Detector. 
-I believe I have found a bug where SWIFT returns non-existant collisions when more than two objects are colliding at the same time.
+There is a bug where SWIFT returns non-existant collisions when more than two objects are colliding at the same time.
 SWIFT is also documented to return a random point as the point of contact whenever there is more than one point of contact.
 This leads to inaccurate face-to-face collisions. As a random point is chosen as the point of collision rather than the average point of contact.
 
-As a replacement utilizing binary space trees, axis-aligned bounding boxes, and signed distance fields as primary, second, and third levels of contact detections respectively seems promising. Alternatively attempting to utilize a different OTS solution such as Bullet may yield promising results.
+As a replacement I have considered using binary space trees, axis-aligned bounding boxes, and signed distance fields as primary, second, and third levels of contact detection respectively. Alternatively attempting to utilize a different OTS solution such as Bullet may yield promising results.
 
