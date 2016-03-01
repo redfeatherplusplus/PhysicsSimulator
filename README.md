@@ -7,9 +7,12 @@ This program performs impulse-based rigid body simulation. It is based off the [
 
 There are three key independent entities. A rendering engine, collision detector, and collision handler. 
 The physics engine provides a collision detector and collision handler which manipulate objects in a scene.
-For collision detection, I use an OTS solution named SWIFT developed by The University of North Carolina.
-The physics simulator itself is responsible for using some sort of rendering engine to render the scene.
-Lastly, a scene maintains multiple particle systems. In this case, rigid bodies.
+The physics simulator itself is responsible for two things. Telling its physics engine to manipulate the scene.
+And using some sort of rendering engine to render the scene. Lastly, a scene maintains multiple particle systems. 
+In this case, rigid bodies.
+
+Also shown above, is the fact that I use an OTS solution for collision detection called SWIFT. 
+SWIFT was developed by The University of North Carolina, and has issues mentioned in the TODO section below.
 
 ## Logical View
 
