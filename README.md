@@ -11,8 +11,7 @@ The physics simulator itself is responsible for two things. Telling its physics 
 And using some sort of rendering engine to render the scene. Lastly, a scene maintains multiple particle systems. 
 In this case, rigid bodies.
 
-Also shown above, is the fact that I use an OTS solution for collision detection called SWIFT. 
-SWIFT was developed by The University of North Carolina, and has issues mentioned in the TODO section below.
+Also shown above, is the fact that I use an OTS solution for collision detection called SWIFT developed by The University of North Carolina.
 
 ## Logical View
 
