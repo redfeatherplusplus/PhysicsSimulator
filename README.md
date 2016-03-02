@@ -33,3 +33,5 @@ This leads to inaccurate face-to-face collisions. As a random point is chosen as
 As a replacement I have considered using binary space trees, axis-aligned bounding boxes, and signed distance fields as primary, second, and third levels of contact detection respectively. Alternatively attempting to utilize a different OTS solution such as Bullet may yield promising results.
 
 Also, some decoupling must be done that was not done earlier due to time constraints. Currently the collision response logic is contained within the Scene. This logic needs to be extracted into its own class and moved into its own collision handler class.
+
+Lastly, work should be done to replace my own library of matrix functions with a well tested matrix library such as GLM.
