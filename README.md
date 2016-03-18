@@ -1,5 +1,8 @@
 # Physics Simulator
-This program performs impulse-based rigid body simulation. It is based off the [Rigid Body Simulation](http://www.pixar.com/companyinfo/research/pbm2001/pdf/notesg.pdf) paper by David Baraff at Pixar and the [Nonconvex Rigid Bodies with Stacking](http://graphics.stanford.edu/papers/rigid_bodies-sig03/) paper by Eran Guendelman at Stanford.
+
+This program performs impulse-based rigid body simulation on any convex rigid body. It is based off the [Rigid Body Simulation](http://www.pixar.com/companyinfo/research/pbm2001/pdf/notesg.pdf) paper by David Baraff at Pixar and the [Nonconvex Rigid Bodies with Stacking](http://graphics.stanford.edu/papers/rigid_bodies-sig03/) paper by Eran Guendelman at Stanford.
+
+![Demo](https://i.gyazo.com/436580f7238fbbf30f13cc567b47d55f.gif)
 
 ## Domain Model
 
