@@ -6,7 +6,7 @@ This program performs impulse-based rigid body simulation on any convex rigid bo
 
 ## Domain Model
 
-![Domain Model](http://i390.photobucket.com/albums/oo349/thebirdislost54/physDomain03_zpshy81asa0.png~original)
+![Domain Model](https://i.imgur.com/1NJNBj9.png)
 
 There are three key independent entities. A rendering engine, collision detector, and collision handler. 
 The physics engine provides a collision detector and collision handler which manipulate objects in a scene.
@@ -18,7 +18,7 @@ I use an OTS solution for collision detection called SWIFT developed by The Univ
 
 ## Logical View
 
-![Logical View](http://i390.photobucket.com/albums/oo349/thebirdislost54/physLogical02_zpsrxkgc9tv.png~original)
+![Logical View](https://i.imgur.com/Fmlm9oM.png)
 
 In implementation, a Mesh superclass has been extracted out of the Rigidbody class. 
 This decouples information exclusive to physical simulation from information needed for mesh rendering.
